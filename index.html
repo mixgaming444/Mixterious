@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mixterious</title>
+  <meta name="description" content="Mixterious — smooth Minecraft-inspired browser vibe" />
+  <style>
+    :root{
+      --bg-dark:#071018;
+      --panel:#0b1220;
+      --accent1:#34d399; /* emerald */
+      --accent2:#9b5cf6; /* purple */
+      --accent3:#ef4444; /* nether red */
+      --glass: rgba(255,255,255,0.04);
+    }
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,system-ui,Arial,sans-serif;background:var(--bg-dark);-webkit-font-smoothing:antialiased}
+    /* Canvas background */
+    canvas#bg {
+      position:fixed;inset:0;width:100%;height:100%;display:block;
+      z-index:0;image-rendering:pixelated;
+      background: linear-gradient(180deg,#071018 0%, #07141e 60%, #05101a 100%);
+    }
+
+    /* Center card */
+    .stage{
+      position:relative;z-index:5;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px;
+      perspective:1200px;
+    }
+
+    .card{
+      width:min(960px,92vw);
+      max-width:1100px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:18px;
+      padding:28px;
+      box-shadow:
+        0 30px 60px rgba(3,8,15,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.02);
+      display:flex;gap:24px;align-items:center;backdrop-filter: blur(6px);
+      transform-style:preserve-3d;
+      transform: translateZ(0);
+    }
+
+    /* Logo block (3D-ish) */
+    .logo-box{
+      width:260px;height:260px;min-width:200px;min-height:200px;
+      border-radius:18px;
+      background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.6),
+        0 6px 18px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+      transform: translateZ(40px);
+      transition: transform .25s ease;
+      border: 2px solid rgba(255,255,255,0.03);
+    }
+
+    .logo-box img{
+      width:84%;height:84%;object-fit:contain;border-radius:10px;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+      image-rendering:auto;
+    }
+    .logo-box:hover{ transform: translateZ(56px) rotateX(4deg); }
+
+    /* Info / title */
+    .info{
+      flex:1; color: #e8f6ff; display:flex;flex-direction:column;gap:16px;
+      transform: translateZ(12px);
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:14px;
+    }
+    .brand .badge{
+      width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      box-shadow:0 10px 30px rgba(58,150,125,0.16);
+      display:flex;align-items:center;justify-content:center;font-weight:800;color:#06120b;
+      font-size:20px;
+      image-rendering:pixelated;
+    }
+
+    .title{
+      font-size:44px;font-weight:900;line-height:1;
+      background:linear-gradient(90deg,var(--accent1),#6ee7b7,var(--accent2));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-transform:uppercase;letter-spacing:1px;
+      filter: drop-shadow(0 8px 22px rgba(107,70,193,0.12));
+      font-family:Inter, "Segoe UI", system-ui, Arial, sans-serif;
+    }
+
+    .subtitle{
+      color: #9fb6d1; font-size:15px; max-width:60ch;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+    }
+
+    /* Buttons row */
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .btn{
+      padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color:#e6f7ff;font-weight:700;cursor:pointer;font-size:13px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.45);
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#04140e;border:0;padding:10px 16px;
+      box-shadow:0 12px 30px rgba(75,0,130,0.18);
+    }
+
+    /* footer small */
+    .foot{margin-top:10px;color:#84a1bf;font-size:12px;}
+
+    /* Responsive */
+    @media (max-width:880px){
+      .card{flex-direction:column;padding:18px}
+      .logo-box{width:200px;height:200px}
+      .title{font-size:34px}
+    }
+  </style>
+</head>
+<body>
+  <!-- Canvas draws animated Minecraft-style block tiles -->
+  <canvas id="bg"></canvas>
+
+  <div class="stage">
+    <div class="card" role="main" aria-label="Mixterious splash">
+      <div class="logo-box" title="Mixterious">
+        <!-- Put your square logo here at assets/mixterious-logo.png -->
+        <img id="logo" src="assets/mixterious-logo.png" alt="Mixterious logo" onerror="this.style.display='none'">
+      </div>
+
+      <div class="info">
+        <div class="brand">
+          <div class="badge">M</div>
+          <div>
+            <div class="title">Mixterious</div>
+            <div class="subtitle">A smooth, Minecraft-inspired browser vibe — emerald tones, soft 3D depth, and blocky animated background.</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="open">Open Mixterious</button>
+          <button class="btn" id="yt">My YouTube</button>
+          <button class="btn" id="github">Source (GitHub)</button>
+        </div>
+
+        <div class="foot">Tip: Put your square logo at <code>assets/mixterious-logo.png</code>. Drop this file as <code>index.html</code> in your GitHub repo.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ---------------------------
+       Animated blocky background
+       --------------------------- */
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    let w=0,h=0, block=48, cols=0, rows=0;
+    const palette = {
+      grass: ['#6cc16a','#61a957','#2f6b31'],
+      dirt: ['#9b6b3c','#6f4f34','#3e2a20'],
+      stone: ['#9aa0a6','#6f767b','#3a3f44'],
+      water: ['#54a8ff','#2b7bd6','#1a4e8a'],
+      obsidian: ['#221022','#39163a','#37123b']
+    };
+
+    function resize(){
+      w = canvas.width = innerWidth;
+      h = canvas.height = innerHeight;
+      // adjust block size for small screens
+      block = Math.max(28, Math.min(64, Math.floor(Math.min(w,h)/18)));
+      cols = Math.ceil(w / block) + 2;
+      rows = Math.ceil(h / block) + 2;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // generate stable grid (random but seeded)
+    let grid = [];
+    function seedGrid(){
+      grid = [];
+      for(let y=0;y<rows;y++){
+        const row = [];
+        for(let x=0;x<cols;x++){
+          // base: grass near top, dirt below, stone mixed, water pockets
+          const r = Math.random();
+          let type='stone';
+          if(y < rows*0.35 && r < 0.65) type='grass';
+          else if(r < 0.75) type='dirt';
+          else if(r < 0.88) type='stone';
+          else if(r < 0.96) type='water';
+          else type='obsidian';
+          row.push(type);
+        }
+        grid.push(row);
+      }
+    }
+    seedGrid();
+
+    // clouds: floating lighter blocks
+    let clouds = [];
+    for(let i=0;i<8;i++){
+      clouds.push({x: Math.random()*w, y: Math.random()*h*0.25, s: 40 + Math.random()*80, vx: 0.1 + Math.random()*0.3});
+    }
+
+    let t0 = performance.now();
+
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+      const t = performance.now();
+      const dt = (t - t0) / 1000;
+      t0 = t;
+
+      // slight parallax based on mouse (set by event)
+      const px = (mouse.x - w/2) / w;
+      const py = (mouse.y - h/2) / h;
+
+      // draw tiles
+      const offsetX = Math.floor(px * 18);
+      const offsetY = Math.floor(py * 8);
+      for(let y=0;y<rows;y++){
+        for(let x=0;x<cols;x++){
+          const type = grid[y][x];
+          const base = palette[type][0];
+          const mid = palette[type][1];
+          const dark = palette[type][2];
+
+          const sx = (x * block) - (block/2) + offsetX + ((t/5000) * ( (type==='water')?10: (type==='obsidian')? -6 : 0 ));
+          const sy = (y * block) - (block/2) + offsetY + Math.sin((x+y)/6 + t/1500) * (type==='water'?4:1);
+
+          // draw 3D-ish top face and side to mimic cube
+          // top face
+          ctx.fillStyle = base;
+          ctx.fillRect(Math.round(sx), Math.round(sy), block, Math.round(block*0.66));
+          // shadow/side
+          ctx.fillStyle = dark;
+          ctx.fillRect(Math.round(sx), Math.round(sy + block*0.66), block, Math.round(block*0.34));
+          // subtle highlight
+          ctx.fillStyle = mid;
+          ctx.fillRect(Math.round(sx+2), Math.round(sy+2), Math.max(0, block-4), Math.round(block*0.4));
+        }
+      }
+
+      // clouds
+      ctx.globalAlpha = 0.85;
+      for(const c of clouds){
+        c.x += c.vx * dt * 60;
+        if(c.x - c.s > w) c.x = -c.s;
+        drawCloud(c);
+      }
+      ctx.globalAlpha = 1;
+
+      requestAnimationFrame(draw);
+    }
+
+    function drawCloud(c){
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      const s = c.s;
+      // blocky cloud made of squares
+      const step = Math.max(8, Math.floor(s/6));
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      for(let ox=-step*2; ox<step*4; ox+=step){
+        for(let oy=-step; oy<step*2; oy+=step){
+          const alpha = 0.06 + Math.abs(Math.sin((ox+oy)/10))*0.04;
+          ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+          ctx.fillRect(Math.round(ox), Math.round(oy), step-1, step-1);
+        }
+      }
+      ctx.restore();
+    }
+
+    // mouse parallax
+    const mouse = {x: w/2, y: h/2};
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    // small subtle animation for badge/title
+    document.getElementById('open').addEventListener('click', ()=> {
+      // Pulse effect
+      const el = document.querySelector('.card');
+      el.animate([{transform:'translateZ(0) scale(1)'},{transform:'translateZ(6px) scale(1.01)'},{transform:'translateZ(0) scale(1)'}], {duration:420, easing:'ease-out'});
+      // open home placeholder (can change)
+      window.location.href = 'https://google.com';
+    });
+    document.getElementById('yt').addEventListener('click', ()=> window.open('https://youtube.com', '_blank'));
+    document.getElementById('github').addEventListener('click', ()=> window.open('https://github.com', '_blank'));
+
+    // start loop
+    requestAnimationFrame(draw);
+
+    // Recreate grid when size changes (better stable)
+    window.addEventListener('resize', ()=> {
+      resizeCanvas();
+      seedGrid();
+    });
+
+    function resizeCanvas(){
+      w = canvas.width = innerWidth;
+      h = canvas.height = innerHeight;
+      block = Math.max(28, Math.min(64, Math.floor(Math.min(w,h)/18)));
+      cols = Math.ceil(w / block) + 2;
+      rows = Math.ceil(h / block) + 2;
+    }
+    resizeCanvas();
+
+  </script>
+</body>
+</html>
